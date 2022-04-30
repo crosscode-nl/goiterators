@@ -47,7 +47,7 @@ func FromSlice[T any](values []T) Iterable[T] {
 	}
 }
 
-func FromRSlice[T any](values []T) Iterable[T] {
+func FromReverseSlice[T any](values []T) Iterable[T] {
 	return &SliceIterator[T]{
 		idx:    -1,
 		values: values,
