@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cucumber/godog"
+	"reflect"
 	"strconv"
 	"testing"
 )
@@ -51,6 +52,46 @@ func getAfterNextShouldReturn(listofints *godog.Table) error {
 	return nil
 }
 
+func aSliceIteratorIsReturnedWithIdxContaining(arg1 int) error {
+	si := result.(*SliceIterator[int])
+	if arg1 != si.idx {
+		return fmt.Errorf("expected: %v got: %v", arg1, si.idx)
+	}
+	return nil
+}
+
+func aSliceIteratorIsReturnedWithErrorContainingNil() error {
+	si := result.(*SliceIterator[int])
+	if nil != si.error {
+		return fmt.Errorf("expected: %v got: %v", nil, si.error)
+	}
+	return nil
+}
+
+func aSliceIteratorIsReturnedWithReverseContainingFalse() error {
+	si := result.(*SliceIterator[int])
+	if false != si.reverse {
+		return fmt.Errorf("expected: %v got: %v", false, si.reverse)
+	}
+	return nil
+}
+
+func aSliceIteratorIsReturnedWithValuesContaining(listofints *godog.Table) error {
+	s := []int{}
+	si := result.(*SliceIterator[int])
+	for _, row := range listofints.Rows {
+		i, err := strconv.Atoi(row.Cells[0].Value)
+		if err != nil {
+			return err
+		}
+		s = append(s, i)
+	}
+	if !reflect.DeepEqual(s, si.values) {
+		return fmt.Errorf("expected: %v got: %v", s, si.values)
+	}
+	return nil
+}
+
 func aSliceWithTheFollowingValues(listofints *godog.Table) error {
 	for _, row := range listofints.Rows {
 		i, err := strconv.Atoi(row.Cells[0].Value)
@@ -75,6 +116,10 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^FromSlice is called$`, fromSliceIsCalled)
 	ctx.Step(`^Next\(\) returns true (\d+) times and then returns false$`, nextReturnsTrueTimesAndThenReturnsFalse)
 	ctx.Step(`^Get\(\) after Next\(\) should return:$`, getAfterNextShouldReturn)
+	ctx.Step(`^a SliceIterator is returned with \.error containing nil$`, aSliceIteratorIsReturnedWithErrorContainingNil)
+	ctx.Step(`^a SliceIterator is returned with \.idx containing (-\d+)$`, aSliceIteratorIsReturnedWithIdxContaining)
+	ctx.Step(`^a SliceIterator is returned with \.reverse containing false$`, aSliceIteratorIsReturnedWithReverseContainingFalse)
+	ctx.Step(`^a SliceIterator is returned with \.values containing:$`, aSliceIteratorIsReturnedWithValuesContaining)
 
 }
 
