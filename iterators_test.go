@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cucumber/godog"
+	"iterator/testhelpers"
 	"reflect"
-	"strconv"
 	"testing"
 )
 
@@ -36,11 +36,11 @@ func nextReturnsTrueTimesAndThenReturnsFalse(num int) error {
 }
 
 func getAfterNextShouldReturn(listofints *godog.Table) error {
-	for _, row := range listofints.Rows {
-		expected, err := strconv.Atoi(row.Cells[0].Value)
-		if err != nil {
-			return err
-		}
+	values, err := testhelpers.TableToSliceOfInts(listofints)
+	if err != nil {
+		return err
+	}
+	for _, expected := range values {
 		if result.Next() != true {
 			return errors.New("expected: true got: false")
 		}
@@ -77,14 +77,10 @@ func aSliceIteratorIsReturnedWithReverseContainingFalse() error {
 }
 
 func aSliceIteratorIsReturnedWithValuesContaining(listofints *godog.Table) error {
-	s := []int{}
 	si := result.(*SliceIterator[int])
-	for _, row := range listofints.Rows {
-		i, err := strconv.Atoi(row.Cells[0].Value)
-		if err != nil {
-			return err
-		}
-		s = append(s, i)
+	s, err := testhelpers.TableToSliceOfInts(listofints)
+	if err != nil {
+		return err
 	}
 	if !reflect.DeepEqual(s, si.values) {
 		return fmt.Errorf("expected: %v got: %v", s, si.values)
@@ -92,15 +88,9 @@ func aSliceIteratorIsReturnedWithValuesContaining(listofints *godog.Table) error
 	return nil
 }
 
-func aSliceWithTheFollowingValues(listofints *godog.Table) error {
-	for _, row := range listofints.Rows {
-		i, err := strconv.Atoi(row.Cells[0].Value)
-		if err != nil {
-			return err
-		}
-		slice = append(slice, i)
-	}
-	return nil
+func aSliceWithTheFollowingValues(listofints *godog.Table) (err error) {
+	slice, err = testhelpers.TableToSliceOfInts(listofints)
+	return
 }
 
 func fromSliceIsCalled() error {
