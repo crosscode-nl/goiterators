@@ -76,6 +76,14 @@ func aSliceIteratorIsReturnedWithReverseContainingFalse() error {
 	return nil
 }
 
+func aSliceIteratorIsReturnedWithReverseContainingTrue() error {
+	si := result.(*SliceIterator[int])
+	if true != si.reverse {
+		return fmt.Errorf("expected: %v got: %v", true, si.reverse)
+	}
+	return nil
+}
+
 func aSliceIteratorIsReturnedWithValuesContaining(listofints *godog.Table) error {
 	si := result.(*SliceIterator[int])
 	s, err := testhelpers.TableToSliceOfInts(listofints)
@@ -93,9 +101,12 @@ func aSliceWithTheFollowingValues(listofints *godog.Table) (err error) {
 	return
 }
 
-func fromSliceIsCalled() error {
+func fromSliceIsCalled() {
 	result = FromSlice(slice)
-	return nil
+}
+
+func fromReverseSliceIsCalled() {
+	result = FromReverseSlice(slice)
 }
 
 func InitializeScenario(ctx *godog.ScenarioContext) {
@@ -104,12 +115,14 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a SliceIterator is returned$`, aSliceIteratorIsReturned)
 	ctx.Step(`^a slice with the following values:$`, aSliceWithTheFollowingValues)
 	ctx.Step(`^FromSlice is called$`, fromSliceIsCalled)
+	ctx.Step(`^FromReverseSlice is called$`, fromReverseSliceIsCalled)
 	ctx.Step(`^Next\(\) returns true (\d+) times and then returns false$`, nextReturnsTrueTimesAndThenReturnsFalse)
 	ctx.Step(`^Get\(\) after Next\(\) should return:$`, getAfterNextShouldReturn)
 	ctx.Step(`^a SliceIterator is returned with \.error containing nil$`, aSliceIteratorIsReturnedWithErrorContainingNil)
 	ctx.Step(`^a SliceIterator is returned with \.idx containing (-\d+)$`, aSliceIteratorIsReturnedWithIdxContaining)
 	ctx.Step(`^a SliceIterator is returned with \.reverse containing false$`, aSliceIteratorIsReturnedWithReverseContainingFalse)
 	ctx.Step(`^a SliceIterator is returned with \.values containing:$`, aSliceIteratorIsReturnedWithValuesContaining)
+	ctx.Step(`^a SliceIterator is returned with \.reverse containing true$`, aSliceIteratorIsReturnedWithReverseContainingTrue)
 
 }
 
