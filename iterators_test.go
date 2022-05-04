@@ -18,7 +18,9 @@ type testFixture struct {
 	resultingSlice          []int
 	reducer                 ReduceFunc[int, int]
 	initialReduceValue      int
-	reduceResult            int
+	counter                 ForEachFunc[int]
+	count                   int
+	sum                     int
 }
 
 var t testFixture
@@ -202,13 +204,31 @@ func initialValueOf(init int) {
 }
 
 func reduceIsCalled() (err error) {
-	t.reduceResult, err = Reduce(t.resultingIntIterator, t.initialReduceValue, t.reducer)
+	t.sum, err = Reduce(t.resultingIntIterator, t.initialReduceValue, t.reducer)
 	return
 }
 
-func theReturnedValuesIs(expected int) error {
-	if t.reduceResult != expected {
-		return fmt.Errorf("expected: %v got: %v", expected, t.reduceResult)
+func theReturnedSumIs(expected int) error {
+	if t.sum != expected {
+		return fmt.Errorf("expected: %v got: %v", expected, t.sum)
+	}
+	return nil
+}
+
+func aForeachFunctionThatSumsAndCountsTheCalls() {
+	t.counter = func(i int) {
+		t.count++
+		t.sum += i
+	}
+}
+
+func foreachIsCalled() error {
+	return ForEach(t.resultingIntIterator, t.counter)
+}
+
+func theReturnedCountIs(expected int) error {
+	if t.count != expected {
+		return fmt.Errorf("expected: %v got: %v", expected, t.sum)
 	}
 	return nil
 }
@@ -237,7 +257,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a reduce function that sums all values$`, aReduceFunctionThatSumsAllValues)
 	ctx.Step(`^initial value of (\d+)$`, initialValueOf)
 	ctx.Step(`^Reduce is called$`, reduceIsCalled)
-	ctx.Step(`^The returned values is (\d+)$`, theReturnedValuesIs)
+	ctx.Step(`^Foreach is called$`, foreachIsCalled)
+
+	ctx.Step(`^a foreach function that sums and counts the calls$`, aForeachFunctionThatSumsAndCountsTheCalls)
+	ctx.Step(`^The returned count is (\d+)$`, theReturnedCountIs)
+	ctx.Step(`^The returned sum is (\d+)$`, theReturnedSumIs)
 
 }
 

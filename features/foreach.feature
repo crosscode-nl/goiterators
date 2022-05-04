@@ -1,11 +1,11 @@
-Feature: Reduce takes an Iterable and a reduce function to reduce a collection to a single result
+Feature: Foreach takes an Iterable and calls a function with each element
 
-  Scenario: An Iterable with int 1,2, & 3 items is reduced so a sum of 6
+  Scenario: An Iterable with int 1,2, & 3 items is processed 3 times
     Given an Iterable with the following values:
       | 1 |
       | 2 |
       | 3 |
-    And a reduce function that sums all values
-    And initial value of 0
-    When Reduce is called
-    Then The returned values is 6
+    And a foreach function that sums and counts the calls
+    When Foreach is called
+    Then The returned sum is 6
+    Then The returned count is 3
