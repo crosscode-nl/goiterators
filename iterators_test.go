@@ -16,6 +16,9 @@ type testFixture struct {
 	predicate               PredicateFunc[int]
 	mapper                  MapFunc[int, string]
 	resultingSlice          []int
+	reducer                 ReduceFunc[int, int]
+	initialReduceValue      int
+	reduceResult            int
 }
 
 var t testFixture
@@ -188,6 +191,28 @@ func toSliceIsCalled() (err error) {
 	return
 }
 
+func aReduceFunctionThatSumsAllValues() {
+	t.reducer = func(a, b int) int {
+		return a + b
+	}
+}
+
+func initialValueOf(init int) {
+	t.initialReduceValue = init
+}
+
+func reduceIsCalled() (err error) {
+	t.reduceResult, err = Reduce(t.resultingIntIterator, t.initialReduceValue, t.reducer)
+	return
+}
+
+func theReturnedValuesIs(expected int) error {
+	if t.reduceResult != expected {
+		return fmt.Errorf("expected: %v got: %v", expected, t.reduceResult)
+	}
+	return nil
+}
+
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	t = testFixture{}
 
@@ -209,6 +234,10 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^Map is called$`, mapIsCalled)
 	ctx.Step(`^a slice is returned with the following values:$`, aSliceIsReturnedWithTheFollowingValues)
 	ctx.Step(`^ToSlice is called$`, toSliceIsCalled)
+	ctx.Step(`^a reduce function that sums all values$`, aReduceFunctionThatSumsAllValues)
+	ctx.Step(`^initial value of (\d+)$`, initialValueOf)
+	ctx.Step(`^Reduce is called$`, reduceIsCalled)
+	ctx.Step(`^The returned values is (\d+)$`, theReturnedValuesIs)
 
 }
 
