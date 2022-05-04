@@ -9,14 +9,19 @@ import (
 	"testing"
 )
 
-var slice []int
-var result Iterable[int]
+type testFixture struct {
+	slice     []int
+	result    Iterable[int]
+	predicate PredicateFunc[int]
+}
+
+var t testFixture
 
 func aSliceIteratorIsReturned() error {
-	if result == nil {
+	if t.result == nil {
 		return errors.New("expected: non nil result got: nil")
 	}
-	si := result.(*SliceIterator[int])
+	si := t.result.(*SliceIterator[int])
 	if si == nil {
 		return errors.New("expected: non nil si got: nil")
 	}
@@ -25,11 +30,11 @@ func aSliceIteratorIsReturned() error {
 
 func nextReturnsTrueTimesAndThenReturnsFalse(num int) error {
 	for ; num > 0; num-- {
-		if result.Next() != true {
+		if t.result.Next() != true {
 			return errors.New("expected: true got: false")
 		}
 	}
-	if result.Next() != false {
+	if t.result.Next() != false {
 		return errors.New("expected: false got: true")
 	}
 	return nil
@@ -41,10 +46,10 @@ func getAfterNextShouldReturn(listofints *godog.Table) error {
 		return err
 	}
 	for _, expected := range values {
-		if result.Next() != true {
+		if t.result.Next() != true {
 			return errors.New("expected: true got: false")
 		}
-		received := result.Get()
+		received := t.result.Get()
 		if received != expected {
 			return fmt.Errorf("expected: %d got: %d", expected, received)
 		}
@@ -53,7 +58,7 @@ func getAfterNextShouldReturn(listofints *godog.Table) error {
 }
 
 func aSliceIteratorIsReturnedWithIdxContaining(arg1 int) error {
-	si := result.(*SliceIterator[int])
+	si := t.result.(*SliceIterator[int])
 	if arg1 != si.idx {
 		return fmt.Errorf("expected: %v got: %v", arg1, si.idx)
 	}
@@ -61,7 +66,7 @@ func aSliceIteratorIsReturnedWithIdxContaining(arg1 int) error {
 }
 
 func aSliceIteratorIsReturnedWithErrorContainingNil() error {
-	si := result.(*SliceIterator[int])
+	si := t.result.(*SliceIterator[int])
 	if nil != si.error {
 		return fmt.Errorf("expected: %v got: %v", nil, si.error)
 	}
@@ -69,7 +74,7 @@ func aSliceIteratorIsReturnedWithErrorContainingNil() error {
 }
 
 func aSliceIteratorIsReturnedWithReverseContainingFalse() error {
-	si := result.(*SliceIterator[int])
+	si := t.result.(*SliceIterator[int])
 	if false != si.reverse {
 		return fmt.Errorf("expected: %v got: %v", false, si.reverse)
 	}
@@ -77,7 +82,7 @@ func aSliceIteratorIsReturnedWithReverseContainingFalse() error {
 }
 
 func aSliceIteratorIsReturnedWithReverseContainingTrue() error {
-	si := result.(*SliceIterator[int])
+	si := t.result.(*SliceIterator[int])
 	if true != si.reverse {
 		return fmt.Errorf("expected: %v got: %v", true, si.reverse)
 	}
@@ -85,7 +90,7 @@ func aSliceIteratorIsReturnedWithReverseContainingTrue() error {
 }
 
 func aSliceIteratorIsReturnedWithValuesContaining(listofints *godog.Table) error {
-	si := result.(*SliceIterator[int])
+	si := t.result.(*SliceIterator[int])
 	s, err := testhelpers.TableToSliceOfInts(listofints)
 	if err != nil {
 		return err
@@ -97,20 +102,52 @@ func aSliceIteratorIsReturnedWithValuesContaining(listofints *godog.Table) error
 }
 
 func aSliceWithTheFollowingValues(listofints *godog.Table) (err error) {
-	slice, err = testhelpers.TableToSliceOfInts(listofints)
+	t.slice, err = testhelpers.TableToSliceOfInts(listofints)
 	return
 }
 
 func fromSliceIsCalled() {
-	result = FromSlice(slice)
+	t.result = FromSlice(t.slice)
 }
 
 func fromReverseSliceIsCalled() {
-	result = FromReverseSlice(slice)
+	t.result = FromReverseSlice(t.slice)
+}
+
+func aFilterIteratorIsReturned() error {
+	if t.result == nil {
+		return errors.New("expected: non nil result got: nil")
+	}
+	fi := t.result.(*FilterIterator[int])
+	if fi == nil {
+		return errors.New("expected: non nil fi got: nil")
+	}
+	return nil
+}
+
+func aPredicateThatOnlySelectsOddNumbers() {
+	t.predicate = func(a int) bool {
+		result := (a % 2) != 0
+		fmt.Printf("%v %v", a, result)
+		return result
+	}
+}
+
+func anIterableWithTheFollowingValues(listofints *godog.Table) error {
+	s, err := testhelpers.TableToSliceOfInts(listofints)
+	if err != nil {
+		return err
+	}
+	t.result = FromSlice(s)
+	return nil
+}
+
+func filterIsCalled() {
+	t.result = Filter(t.result, t.predicate)
 }
 
 func InitializeScenario(ctx *godog.ScenarioContext) {
-	slice = []int{}
+	t = testFixture{}
 
 	ctx.Step(`^a SliceIterator is returned$`, aSliceIteratorIsReturned)
 	ctx.Step(`^a slice with the following values:$`, aSliceWithTheFollowingValues)
@@ -123,7 +160,10 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a SliceIterator is returned with \.reverse containing false$`, aSliceIteratorIsReturnedWithReverseContainingFalse)
 	ctx.Step(`^a SliceIterator is returned with \.values containing:$`, aSliceIteratorIsReturnedWithValuesContaining)
 	ctx.Step(`^a SliceIterator is returned with \.reverse containing true$`, aSliceIteratorIsReturnedWithReverseContainingTrue)
-
+	ctx.Step(`^a FilterIterator is returned$`, aFilterIteratorIsReturned)
+	ctx.Step(`^a predicate that only selects odd numbers$`, aPredicateThatOnlySelectsOddNumbers)
+	ctx.Step(`^an Iterable with the following values:$`, anIterableWithTheFollowingValues)
+	ctx.Step(`^Filter is called$`, filterIsCalled)
 }
 
 func TestFeatures(t *testing.T) {

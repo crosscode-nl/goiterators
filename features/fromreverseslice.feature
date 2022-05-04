@@ -1,5 +1,5 @@
-Feature: FromReverseSlice returns an iterator
-  A valid Iterator and functioning iterator is returned when FromSlice is called
+Feature: FromReverseSlice returns an reverse iterator
+  A valid Iterable and functioning iterator is returned when FromSlice is called
 
   Scenario: A SliceIterator with correct values in fields is returned when FromReverseSlice is called
     Given a slice with the following values:
