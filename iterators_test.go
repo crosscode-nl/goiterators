@@ -436,3 +436,90 @@ func BenchmarkFilterMapReduceInIdiomaticGo(b *testing.B) {
 		benchFunc()
 	}
 }
+
+func filterIntSlice(in []int, predicate func(int) bool) (output []int) {
+	for _, v := range in {
+		if predicate(v) {
+			output = append(output, v)
+		}
+	}
+	return
+}
+
+func mapIntSliceToStringSlice(in []int, mapper func(int) string) (output []string) {
+	for _, v := range in {
+		output = append(output, mapper(v))
+	}
+	return
+}
+
+func reduceStringSliceToString(in []string, init *strings.Builder, reducer func(*strings.Builder, string) *strings.Builder) (output string) {
+	for _, v := range in {
+		init = reducer(init, v)
+	}
+	return init.String()
+}
+
+func BenchmarkFilterMapDIY(b *testing.B) {
+
+	var s []int
+
+	for n := 0; n < 1000; n++ {
+		s = append(s, n)
+	}
+
+	odd := func(v int) bool {
+		return (v % 2) != 0
+	}
+
+	join := func(builder *strings.Builder, value string) *strings.Builder {
+		if builder.Len() > 0 {
+			builder.WriteString(", ")
+		}
+		builder.WriteString(value)
+		return builder
+	}
+
+	benchFunc := func() string {
+		return reduceStringSliceToString(mapIntSliceToStringSlice(filterIntSlice(s, odd), strconv.Itoa), &strings.Builder{}, join)
+	}
+
+	for n := 0; n < b.N; n++ {
+		benchFunc()
+	}
+}
+
+func BenchmarkFilterMapDIY2(b *testing.B) {
+
+	var s []int
+
+	for n := 0; n < 1000; n++ {
+		s = append(s, n)
+	}
+
+	odd := func(v int) bool {
+		return (v % 2) != 0
+	}
+
+	join := func(builder *strings.Builder, value string) *strings.Builder {
+		if builder.Len() > 0 {
+			builder.WriteString(", ")
+		}
+		builder.WriteString(value)
+		return builder
+	}
+
+	benchFunc := func() string {
+		sb := strings.Builder{}
+		for _, v := range s {
+			if odd(v) {
+				join(&sb, strconv.Itoa(v))
+			}
+		}
+		return sb.String()
+	}
+
+	for n := 0; n < b.N; n++ {
+		benchFunc()
+	}
+}
