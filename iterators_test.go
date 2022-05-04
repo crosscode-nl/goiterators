@@ -6,6 +6,7 @@ import (
 	"github.com/cucumber/godog"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -277,5 +278,161 @@ func TestFeatures(t *testing.T) {
 
 	if suite.Run() != 0 {
 		t.Fatal("non-zero status returned, failed to run feature tests")
+	}
+}
+
+// Benchmarks
+
+func BenchmarkFilter(b *testing.B) {
+
+	var s []int
+
+	for n := 0; n < 1000; n++ {
+		s = append(s, n)
+	}
+
+	odd := func(v int) bool {
+		return (v % 2) != 0
+	}
+
+	benchFunc := func() []int {
+		si := FromSlice(s)
+		fi := Filter[int](si, odd)
+		ns, _ := ToSlice[int](fi)
+		return ns
+	}
+
+	for n := 0; n < b.N; n++ {
+		benchFunc()
+	}
+}
+
+func BenchmarkFilterInIdiomaticGo(b *testing.B) {
+
+	var s []int
+
+	for n := 0; n < 1000; n++ {
+		s = append(s, n)
+	}
+
+	benchFunc := func() []int {
+		var ns []int
+		for _, v := range s {
+			if (v % 2) != 0 {
+				ns = append(ns, v)
+			}
+		}
+		return ns
+	}
+
+	for n := 0; n < b.N; n++ {
+		benchFunc()
+	}
+}
+
+func BenchmarkFilterMap(b *testing.B) {
+
+	var s []int
+
+	for n := 0; n < 1000; n++ {
+		s = append(s, n)
+	}
+
+	odd := func(v int) bool {
+		return (v % 2) != 0
+	}
+
+	benchFunc := func() []string {
+		si := FromSlice(s)
+		fi := Filter[int](si, odd)
+		mi := Map[int, string](fi, strconv.Itoa)
+		ns, _ := ToSlice[string](mi)
+		return ns
+	}
+
+	for n := 0; n < b.N; n++ {
+		benchFunc()
+	}
+}
+
+func BenchmarkFilterMapInIdiomaticGo(b *testing.B) {
+
+	var s []int
+
+	for n := 0; n < 1000; n++ {
+		s = append(s, n)
+	}
+
+	benchFunc := func() []string {
+		var ns []string
+		for _, v := range s {
+			if (v % 2) != 0 {
+				ns = append(ns, strconv.Itoa(v))
+			}
+		}
+		return ns
+	}
+
+	for n := 0; n < b.N; n++ {
+		benchFunc()
+	}
+}
+
+func BenchmarkFilterMapReduce(b *testing.B) {
+
+	var s []int
+
+	for n := 0; n < 1000; n++ {
+		s = append(s, n)
+	}
+
+	odd := func(v int) bool {
+		return (v % 2) != 0
+	}
+
+	join := func(builder *strings.Builder, value string) *strings.Builder {
+		if builder.Len() > 0 {
+			builder.WriteString(", ")
+		}
+		builder.WriteString(value)
+		return builder
+	}
+
+	benchFunc := func() string {
+		si := FromSlice(s)
+		fi := Filter[int](si, odd)
+		mi := Map[int, string](fi, strconv.Itoa)
+		sb, _ := Reduce[string, *strings.Builder](mi, &strings.Builder{}, join)
+		return sb.String()
+	}
+
+	for n := 0; n < b.N; n++ {
+		benchFunc()
+	}
+}
+
+func BenchmarkFilterMapReduceInIdiomaticGo(b *testing.B) {
+
+	var s []int
+
+	for n := 0; n < 1000; n++ {
+		s = append(s, n)
+	}
+
+	benchFunc := func() string {
+		builder := strings.Builder{}
+		for _, v := range s {
+			if (v % 2) != 0 {
+				if builder.Len() > 0 {
+					builder.WriteString(", ")
+				}
+				builder.WriteString(strconv.Itoa(v))
+			}
+		}
+		return builder.String()
+	}
+
+	for n := 0; n < b.N; n++ {
+		benchFunc()
 	}
 }
