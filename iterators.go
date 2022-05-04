@@ -7,9 +7,9 @@ type Iterable[T any] interface {
 }
 
 type SliceIterator[T any] struct {
-	idx    int
-	values []T
-	error  error
+	idx     int
+	values  []T
+	error   error
 	reverse bool
 }
 
@@ -38,20 +38,20 @@ func (iter *SliceIterator[T]) Error() error {
 	return iter.error
 }
 
-func FromSlice[T any](values []T) Iterable[T] {
+func FromSlice[T any](values []T) *SliceIterator[T] {
 	return &SliceIterator[T]{
-		idx:    -1,
-		values: values,
-		error:  nil,
+		idx:     -1,
+		values:  values,
+		error:   nil,
 		reverse: false,
 	}
 }
 
-func FromReverseSlice[T any](values []T) Iterable[T] {
+func FromReverseSlice[T any](values []T) *SliceIterator[T] {
 	return &SliceIterator[T]{
-		idx:    -1,
-		values: values,
-		error:  nil,
+		idx:     -1,
+		values:  values,
+		error:   nil,
 		reverse: true,
 	}
 }
@@ -89,7 +89,7 @@ func (iter *MapIterator[T, R]) Error() error {
 	return iter.srcItr.Error()
 }
 
-func Map[T any, R any](iter Iterable[T], f MapFunc[T, R]) Iterable[R] {
+func Map[T any, R any](iter Iterable[T], f MapFunc[T, R]) *MapIterator[T, R] {
 	return &MapIterator[T, R]{
 		srcItr:  iter,
 		mapFunc: f,
@@ -122,7 +122,7 @@ func (iter *FilterIterator[T]) Error() error {
 	return iter.srcItr.Error()
 }
 
-func Filter[T any](iter Iterable[T], predicate PredicateFunc[T]) Iterable[T] {
+func Filter[T any](iter Iterable[T], predicate PredicateFunc[T]) *FilterIterator[T] {
 	return &FilterIterator[T]{
 		srcItr:    iter,
 		predicate: predicate,
@@ -151,4 +151,3 @@ func ToSlice[T any](iter Iterable[T]) ([]T, error) {
 }
 
 // Generators
-

@@ -15,14 +15,6 @@ Feature: FromReverseSlice returns an reverse iterator
     Then a SliceIterator is returned with .error containing nil
     Then a SliceIterator is returned with .reverse containing true
 
-  Scenario: A slice with 3 items returns a SliceIterator when FromReverseSlice is called
-    Given a slice with the following values:
-      | 1 |
-      | 2 |
-      | 3 |
-    When FromReverseSlice is called
-    Then a SliceIterator is returned
-
   Scenario: A slice with 3 items returns an Iterable that returns exactly 3 items when FromReverseSlice is called
     Given a slice with the following values:
       | 1 |
