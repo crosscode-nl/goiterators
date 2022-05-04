@@ -15,6 +15,7 @@ type testFixture struct {
 	resultingStringIterator Iterable[string]
 	predicate               PredicateFunc[int]
 	mapper                  MapFunc[int, string]
+	resultingSlice          []int
 }
 
 var t testFixture
@@ -171,6 +172,22 @@ func mapIsCalled() {
 	t.resultingStringIterator = Map(t.resultingIntIterator, t.mapper)
 }
 
+func aSliceIsReturnedWithTheFollowingValues(listofints *godog.Table) error {
+	s, err := toSliceOfInts(listofints)
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(s, t.resultingSlice) {
+		return fmt.Errorf("expected: %v got: %v", s, t.resultingSlice)
+	}
+	return nil
+}
+
+func toSliceIsCalled() (err error) {
+	t.resultingSlice, err = ToSlice(t.resultingIntIterator)
+	return
+}
+
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	t = testFixture{}
 
@@ -190,6 +207,8 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a map function that multiples the values and converts the int to a string, prefixed with test$`, aMapFunctionThatMultiplesTheValuesAndConvertsTheIntToAStringPrefixedWithTest)
 	ctx.Step(`^Get\(\) after Next\(\) should return the following values as strings:$`, getAfterNextShouldReturnTheFollowingValuesAsStrings)
 	ctx.Step(`^Map is called$`, mapIsCalled)
+	ctx.Step(`^a slice is returned with the following values:$`, aSliceIsReturnedWithTheFollowingValues)
+	ctx.Step(`^ToSlice is called$`, toSliceIsCalled)
 
 }
 
