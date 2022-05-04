@@ -1,22 +1,25 @@
 Feature: Map modifies items item the iteration to a new value and/or type
   A valid Iterable and functioning iterator is returned when Filter is called
 
-  Scenario: A slice with 3 items returns an Iterable that returns exactly 3 items when FromSlice is called
+  Scenario: An Iterable with int 1,2, & 3 items returns exactly 3 values when Map is called
+    with a map function that multiples the values and converts the int to a string, prefixed with test
     Given an Iterable with the following values:
       | 1 |
       | 2 |
       | 3 |
-    And a predicate that only selects odd numbers
-    When Filter is called
-    Then Next() returns true 2 times and then returns false
+    And a map function that multiples the values and converts the int to a string, prefixed with test
+    When Map is called
+    Then Next() returns true 3 times and then returns false
 
-  Scenario: A slice with 3 items returns an Iterable that returns the provided items when FromSlice is called
+  Scenario: An Iterable with int 1,2, & 3 items returns test1, test2, test3 when Map is called
+  with a map function that multiples the values and converts the int to a string, prefixed with test
     Given an Iterable with the following values:
       | 1 |
       | 2 |
       | 3 |
-    And a predicate that only selects odd numbers
-    When Filter is called
-    Then Get() after Next() should return:
-      | 1 |
-      | 3 |
+    And a map function that multiples the values and converts the int to a string, prefixed with test
+    When Map is called
+    Then Get() after Next() should return the following values as strings:
+      | test2 |
+      | test4 |
+      | test6 |
