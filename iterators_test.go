@@ -271,6 +271,33 @@ func sequenceIsCalled() {
 	t.resultingIntIterator = Sequence(t.start, t.end)
 }
 
+func valuesStringToIntSlice(in string) (result []int, err error) {
+	for _, s := range strings.Split(in, ",") {
+		i, err2 := strconv.Atoi(s)
+		if err2 != nil {
+			err = err2
+			return
+		}
+		result = append(result, i)
+	}
+	return
+}
+
+func callingNextUntilFalseIsReturnedShouldReturnTheFollowingValues(values string) error {
+	expected, err := valuesStringToIntSlice(values)
+	if err != nil {
+		return err
+	}
+	results, err := ToSlice(t.resultingIntIterator)
+	if err != nil {
+		return err
+	}
+	if !reflect.DeepEqual(expected, results) {
+		return fmt.Errorf("expected: %v got: %v", expected, results)
+	}
+	return nil
+}
+
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	t = testFixture{}
 
@@ -306,6 +333,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^an step value of (-?\d+)$`, anStepValueOf)
 	ctx.Step(`^StepSequence is called$`, stepSequenceIsCalled)
 	ctx.Step(`^Sequence is called$`, sequenceIsCalled)
+	ctx.Step(`^calling Next\(\) until false is returned should return the following values: "([^"]*)"$`, callingNextUntilFalseIsReturnedShouldReturnTheFollowingValues)
 
 }
 
