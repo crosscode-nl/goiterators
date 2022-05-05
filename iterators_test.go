@@ -298,6 +298,49 @@ func callingNextUntilFalseIsReturnedShouldReturnTheFollowingValues(values string
 	return nil
 }
 
+type ErrorIterator[T any] struct{}
+
+func (e *ErrorIterator[T]) Next() (T, bool) {
+	var t T
+	return t, false
+}
+
+func (e *ErrorIterator[T]) Error() error {
+	return errors.New("iterator not implemented")
+}
+
+func anIterableInAnErrorState() {
+	t.resultingIntIterator = &ErrorIterator[int]{}
+}
+
+func errorOfStringIteratorReturnsAnError() error {
+	if t.resultingStringIterator.Error() == nil {
+		return errors.New("expected an error but got nil")
+	}
+	return nil
+}
+
+func errorOfStringIteratorReturnsNil() error {
+	if t.resultingStringIterator.Error() != nil {
+		return errors.New("expected nil but got an error")
+	}
+	return nil
+}
+
+func errorOfIntIteratorReturnsAnError() error {
+	if t.resultingIntIterator.Error() == nil {
+		return errors.New("expected an error but got nil")
+	}
+	return nil
+}
+
+func errorOfIntIteratorReturnsNil() error {
+	if t.resultingIntIterator.Error() != nil {
+		return errors.New("expected nil but got an error")
+	}
+	return nil
+}
+
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	t = testFixture{}
 
@@ -334,6 +377,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^StepSequence is called$`, stepSequenceIsCalled)
 	ctx.Step(`^Sequence is called$`, sequenceIsCalled)
 	ctx.Step(`^calling Next\(\) until false is returned should return the following values: "([^"]*)"$`, callingNextUntilFalseIsReturnedShouldReturnTheFollowingValues)
+	ctx.Step(`^an Iterable in an error state$`, anIterableInAnErrorState)
+	ctx.Step(`^Error\(\) of int iterator returns an error$`, errorOfIntIteratorReturnsAnError)
+	ctx.Step(`^Error\(\) of int iterator returns nil$`, errorOfIntIteratorReturnsNil)
+	ctx.Step(`^Error\(\) of string iterator returns an error$`, errorOfStringIteratorReturnsAnError)
+	ctx.Step(`^Error\(\) of string iterator returns nil$`, errorOfStringIteratorReturnsNil)
 
 }
 

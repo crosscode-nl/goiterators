@@ -23,3 +23,18 @@ Feature: Map modifies items item the iteration to a new value and/or type
       | test2 |
       | test4 |
       | test6 |
+
+  Scenario: MapIterator handles errors in source iterator
+    Given an Iterable in an error state
+    And a map function that multiples the values and converts the int to a string, prefixed with test
+    When Map is called
+    Then Error() of string iterator returns an error
+
+    Given an Iterable with the following values:
+      | 1 |
+      | 2 |
+      | 3 |
+    And a map function that multiples the values and converts the int to a string, prefixed with test
+    When Map is called
+    Then Error() of string iterator returns nil
+
