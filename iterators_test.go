@@ -867,3 +867,25 @@ func ExampleToSlice() {
 	// 7
 	// 9
 }
+
+func ExampleGenerate() {
+	// A generator/iterator can be created easily from a closure using Generate.
+	// The closure receives two parameters: c is the current count, and r is the amount of items to generate.
+	counter := func(c uint64, r uint64) int {
+		return int(c)
+	}
+
+	gi := Generate[int](3, counter)
+
+	// Print each value from the generating iterator. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	_ = ForEach[int](gi, func(v int) {
+		fmt.Println(v)
+	})
+
+	// Output:
+	// 0
+	// 1
+	// 2
+}
