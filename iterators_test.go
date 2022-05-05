@@ -24,6 +24,9 @@ type testFixture struct {
 	sum                     int
 	generator               GeneratorFunc[string]
 	repeat                  uint64
+	start                   int
+	end                     int
+	step                    int
 }
 
 var t testFixture
@@ -248,6 +251,26 @@ func generateIsCalled() {
 	t.resultingStringIterator = Generate(t.repeat, t.generator)
 }
 
+func aStartValueOf(s int) {
+	t.start = s
+}
+
+func anEndValueOf(e int) {
+	t.end = e
+}
+
+func anStepValueOf(s int) {
+	t.step = s
+}
+
+func stepSequenceIsCalled() {
+	t.resultingIntIterator = StepSequence(t.start, t.end, t.step)
+}
+
+func sequenceIsCalled() {
+	t.resultingIntIterator = Sequence(t.start, t.end)
+}
+
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	t = testFixture{}
 
@@ -255,7 +278,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^FromSlice is called$`, fromSliceIsCalled)
 	ctx.Step(`^FromReverseSlice is called$`, fromReverseSliceIsCalled)
 	ctx.Step(`^Next\(\) returns true (\d+) times and then returns false$`, nextReturnsTrueTimesAndThenReturnsFalse)
-	ctx.Step(`^a SliceIterator is returned with \.idx containing (-\d+)$`, aSliceIteratorIsReturnedWithIdxContaining)
+	ctx.Step(`^a SliceIterator is returned with \.idx containing (-?\d+)$`, aSliceIteratorIsReturnedWithIdxContaining)
 	ctx.Step(`^a SliceIterator is returned with \.reverse containing false$`, aSliceIteratorIsReturnedWithReverseContainingFalse)
 	ctx.Step(`^a SliceIterator is returned with \.values containing:$`, aSliceIteratorIsReturnedWithValuesContaining)
 	ctx.Step(`^a SliceIterator is returned with \.reverse containing true$`, aSliceIteratorIsReturnedWithReverseContainingTrue)
@@ -278,6 +301,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a GeneratorFunc that returns the count and repeat concatenated with a comma\.$`, aGeneratorFuncThatReturnsTheCountAndRepeatConcatenatedWithAComma)
 	ctx.Step(`^a repeat value of (\d+)$`, aRepeatValueOf)
 	ctx.Step(`^Generate\(\) is called$`, generateIsCalled)
+	ctx.Step(`^a start value of (-?\d+)$`, aStartValueOf)
+	ctx.Step(`^an end value of (-?\d+)$`, anEndValueOf)
+	ctx.Step(`^an step value of (-?\d+)$`, anStepValueOf)
+	ctx.Step(`^StepSequence is called$`, stepSequenceIsCalled)
+	ctx.Step(`^Sequence is called$`, sequenceIsCalled)
 
 }
 

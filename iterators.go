@@ -249,24 +249,28 @@ func RepeatingIntegerGenerator[T SignedIntegers](i T, r uint64, s T) *Generating
 }
 
 // StepSequence accepts signed integer for start and end values. It will return GeneratingIterator
-// that returns a sequence of values from start (inclusive) to end (not inclusive).
+// that returns a sequence of values from start (inclusive) to end (inclusive).
 // The sequence will increase or decrease the value returned with each iteration step with step.
 // StepSequence will correct the sign of step for generating a sequence from start to end.
 func StepSequence[T SignedIntegers](start T, end T, step T) *GeneratingIterator[T] {
+	absStep := step
 	if start > end {
 		if step > 0 {
 			step *= -1
+		} else {
+			absStep *= -1
 		}
-		return RepeatingIntegerGenerator(start, uint64(start-end), step)
+		return RepeatingIntegerGenerator(start, uint64((start-end)/absStep)+1, step)
 	}
 	if step < 0 {
 		step *= -1
+		absStep *= -1
 	}
-	return RepeatingIntegerGenerator(start, uint64(end-start), step)
+	return RepeatingIntegerGenerator(start, uint64((end-start)/absStep)+1, step)
 }
 
 // Sequence accepts signed integer for start and end values. It will return GeneratingIterator
-// that returns a sequence of values from start (inclusive) to end (not inclusive).
+// that returns a sequence of values from start (inclusive) to end (inclusive).
 // The sequence will increase or decrease the value returned with each iteration step with 1.
 // StepSequence will correct the sign of step for generating a sequence from start to end.
 func Sequence[T SignedIntegers](start T, end T) *GeneratingIterator[T] {
