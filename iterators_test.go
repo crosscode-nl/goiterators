@@ -237,7 +237,7 @@ func callingNextUntilFalseIsReturnedShouldReturnTheFollowingIntegers(listofints 
 }
 
 func aGeneratorFuncThatReturnsTheCountAndRepeatConcatenatedWithAComma() {
-	t.generator = func(c, r uint64) string {
+	t.generator = func(p string, c, r uint64) string {
 		return fmt.Sprintf("%d,%d", c, r)
 	}
 }
@@ -247,7 +247,7 @@ func aRepeatValueOf(r int) {
 }
 
 func generateIsCalled() {
-	t.resultingStringIterator = Generate(t.repeat, t.generator)
+	t.resultingStringIterator = Generate("", t.repeat, t.generator)
 }
 
 func aStartValueOf(s int) {
@@ -871,11 +871,11 @@ func ExampleToSlice() {
 func ExampleGenerate() {
 	// A generator/iterator can be created easily from a closure using Generate.
 	// The closure receives two parameters: c is the current count, and r is the amount of items to generate.
-	counter := func(c uint64, r uint64) int {
-		return int(c)
+	counter := func(p int, c uint64, r uint64) int {
+		return p + 1
 	}
 
-	gi := Generate[int](3, counter)
+	gi := Generate[int](0, 3, counter)
 
 	// Print each value from the generating iterator. Error is ignored. Errors can only occur in Iterators which can have
 	// an error state. For example a custom iterator that reads data from the database, but the connection is
@@ -885,7 +885,7 @@ func ExampleGenerate() {
 	})
 
 	// Output:
-	// 0
 	// 1
 	// 2
+	// 3
 }
