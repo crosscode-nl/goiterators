@@ -49,29 +49,13 @@ func toSliceOfStrings(table *godog.Table) (result []string) {
 
 func nextReturnsTrueTimesAndThenReturnsFalse(num int) error {
 	for ; num > 0; num-- {
-		if t.resultingIntIterator.Next() != true {
-			return errors.New("expected: true got: false")
-		}
-	}
-	if t.resultingIntIterator.Next() != false {
-		return errors.New("expected: false got: true")
-	}
-	return nil
-}
 
-func getAfterNextShouldReturn(listofints *godog.Table) error {
-	values, err := toSliceOfInts(listofints)
-	if err != nil {
-		return err
-	}
-	for _, expected := range values {
-		if t.resultingIntIterator.Next() != true {
+		if _, r := t.resultingIntIterator.Next(); r != true {
 			return errors.New("expected: true got: false")
 		}
-		received := t.resultingIntIterator.Get()
-		if received != expected {
-			return fmt.Errorf("expected: %d got: %d", expected, received)
-		}
+	}
+	if _, r := t.resultingIntIterator.Next(); r != false {
+		return errors.New("expected: false got: true")
 	}
 	return nil
 }
@@ -160,20 +144,6 @@ func aMapFunctionThatMultiplesTheValuesAndConvertsTheIntToAStringPrefixedWithTes
 	}
 }
 
-func getAfterNextShouldReturnTheFollowingValuesAsStrings(listofints *godog.Table) error {
-	values := toSliceOfStrings(listofints)
-	for _, expected := range values {
-		if t.resultingStringIterator.Next() != true {
-			return errors.New("expected: true got: false")
-		}
-		received := t.resultingStringIterator.Get()
-		if received != expected {
-			return fmt.Errorf("expected: %v got: %v", expected, received)
-		}
-	}
-	return nil
-}
-
 func mapIsCalled() {
 	t.resultingStringIterator = Map(t.resultingIntIterator, t.mapper)
 }
@@ -234,6 +204,42 @@ func theReturnedCountIs(expected int) error {
 	return nil
 }
 
+func callingNextUntilFalseIsReturnedShouldReturnTheFollowingStrings(listofints *godog.Table) error {
+	expected := toSliceOfStrings(listofints)
+
+	var results []string
+
+	for v, b := t.resultingStringIterator.Next(); b; v, b = t.resultingStringIterator.Next() {
+		results = append(results, v)
+	}
+
+	if !reflect.DeepEqual(expected, results) {
+		return fmt.Errorf("expected: %v got: %v", expected, results)
+	}
+
+	return nil
+}
+
+func callingNextUntilFalseIsReturnedShouldReturnTheFollowingIntegers(listofints *godog.Table) error {
+	expected, err := toSliceOfInts(listofints)
+
+	if err != nil {
+		return err
+	}
+
+	var results []int
+
+	for v, b := t.resultingIntIterator.Next(); b; v, b = t.resultingIntIterator.Next() {
+		results = append(results, v)
+	}
+
+	if !reflect.DeepEqual(expected, results) {
+		return fmt.Errorf("expected: %v got: %v", expected, results)
+	}
+
+	return nil
+}
+
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	t = testFixture{}
 
@@ -241,7 +247,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^FromSlice is called$`, fromSliceIsCalled)
 	ctx.Step(`^FromReverseSlice is called$`, fromReverseSliceIsCalled)
 	ctx.Step(`^Next\(\) returns true (\d+) times and then returns false$`, nextReturnsTrueTimesAndThenReturnsFalse)
-	ctx.Step(`^Get\(\) after Next\(\) should return:$`, getAfterNextShouldReturn)
+	//	ctx.Step(`^Get\(\) after Next\(\) should return:$`, getAfterNextShouldReturn)
 	ctx.Step(`^a SliceIterator is returned with \.error containing nil$`, aSliceIteratorIsReturnedWithErrorContainingNil)
 	ctx.Step(`^a SliceIterator is returned with \.idx containing (-\d+)$`, aSliceIteratorIsReturnedWithIdxContaining)
 	ctx.Step(`^a SliceIterator is returned with \.reverse containing false$`, aSliceIteratorIsReturnedWithReverseContainingFalse)
@@ -251,7 +257,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^an Iterable with the following values:$`, anIterableWithTheFollowingValues)
 	ctx.Step(`^Filter is called$`, filterIsCalled)
 	ctx.Step(`^a map function that multiples the values and converts the int to a string, prefixed with test$`, aMapFunctionThatMultiplesTheValuesAndConvertsTheIntToAStringPrefixedWithTest)
-	ctx.Step(`^Get\(\) after Next\(\) should return the following values as strings:$`, getAfterNextShouldReturnTheFollowingValuesAsStrings)
+	//	ctx.Step(`^Get\(\) after Next\(\) should return the following values as strings:$`, getAfterNextShouldReturnTheFollowingValuesAsStrings)
 	ctx.Step(`^Map is called$`, mapIsCalled)
 	ctx.Step(`^a slice is returned with the following values:$`, aSliceIsReturnedWithTheFollowingValues)
 	ctx.Step(`^ToSlice is called$`, toSliceIsCalled)
@@ -259,10 +265,11 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^initial value of (\d+)$`, initialValueOf)
 	ctx.Step(`^Reduce is called$`, reduceIsCalled)
 	ctx.Step(`^Foreach is called$`, foreachIsCalled)
-
 	ctx.Step(`^a foreach function that sums and counts the calls$`, aForeachFunctionThatSumsAndCountsTheCalls)
 	ctx.Step(`^The returned count is (\d+)$`, theReturnedCountIs)
 	ctx.Step(`^The returned sum is (\d+)$`, theReturnedSumIs)
+	ctx.Step(`^calling Next\(\) until false is returned should return the following integers:$`, callingNextUntilFalseIsReturnedShouldReturnTheFollowingIntegers)
+	ctx.Step(`^calling Next\(\) until false is returned should return the following strings:$`, callingNextUntilFalseIsReturnedShouldReturnTheFollowingStrings)
 
 }
 

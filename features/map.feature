@@ -19,7 +19,7 @@ Feature: Map modifies items item the iteration to a new value and/or type
       | 3 |
     And a map function that multiples the values and converts the int to a string, prefixed with test
     When Map is called
-    Then Get() after Next() should return the following values as strings:
+    Then calling Next() until false is returned should return the following strings:
       | test2 |
       | test4 |
       | test6 |

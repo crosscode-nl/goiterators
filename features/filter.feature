@@ -20,6 +20,6 @@ Feature: Filter removes items from the iteration that do not match the predicate
       | 3 |
     And a predicate that only selects odd numbers
     When Filter is called
-    Then Get() after Next() should return:
+    Then calling Next() until false is returned should return the following integers:
       | 1 |
       | 3 |

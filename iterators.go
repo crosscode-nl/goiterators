@@ -1,8 +1,7 @@
 package iterator
 
 type Iterable[T any] interface {
-	Next() bool
-	Get() T
+	Next() (T, bool)
 	Error() error
 }
 
@@ -13,25 +12,18 @@ type SliceIterator[T any] struct {
 	reverse bool
 }
 
-func (iter *SliceIterator[T]) Next() bool {
+func (iter *SliceIterator[T]) Next() (T, bool) {
 	if iter.idx < len(iter.values) {
 		iter.idx++
 	}
 	if iter.idx == len(iter.values) {
-		return false
-	}
-	return true
-}
-
-func (iter *SliceIterator[T]) Get() T {
-	if iter.idx == len(iter.values) || iter.idx < 0 {
-		var result T
-		return result
+		var t T
+		return t, false
 	}
 	if iter.reverse {
-		return iter.values[len(iter.values)-1-iter.idx]
+		return iter.values[len(iter.values)-1-iter.idx], true
 	}
-	return iter.values[iter.idx]
+	return iter.values[iter.idx], true
 }
 
 func (iter *SliceIterator[T]) Error() error {
@@ -62,8 +54,8 @@ func FromReverseSlice[T any](values []T) *SliceIterator[T] {
 type ForEachFunc[T any] func(T)
 
 func ForEach[T any](iter Iterable[T], f ForEachFunc[T]) error {
-	for iter.Next() {
-		f(iter.Get())
+	for v, b := iter.Next(); b; v, b = iter.Next() {
+		f(v)
 	}
 	return iter.Error()
 }
@@ -77,12 +69,13 @@ type MapIterator[T any, R any] struct {
 	mapFunc MapFunc[T, R]
 }
 
-func (iter *MapIterator[T, R]) Next() bool {
-	return iter.srcItr.Next()
-}
-
-func (iter *MapIterator[T, R]) Get() R {
-	return iter.mapFunc(iter.srcItr.Get())
+func (iter *MapIterator[T, R]) Next() (R, bool) {
+	v, b := iter.srcItr.Next()
+	if !b {
+		var r R
+		return r, false
+	}
+	return iter.mapFunc(v), true
 }
 
 func (iter *MapIterator[T, R]) Error() error {
@@ -105,17 +98,14 @@ type FilterIterator[T any] struct {
 	predicate PredicateFunc[T]
 }
 
-func (iter *FilterIterator[T]) Next() bool {
-	for iter.srcItr.Next() {
-		if iter.predicate(iter.srcItr.Get()) {
-			return true
+func (iter *FilterIterator[T]) Next() (T, bool) {
+	for v, b := iter.srcItr.Next(); b; v, b = iter.srcItr.Next() {
+		if iter.predicate(v) {
+			return v, true
 		}
 	}
-	return false
-}
-
-func (iter *FilterIterator[T]) Get() T {
-	return iter.srcItr.Get()
+	var t T
+	return t, false
 }
 
 func (iter *FilterIterator[T]) Error() error {
@@ -134,8 +124,8 @@ func Filter[T any](iter Iterable[T], predicate PredicateFunc[T]) *FilterIterator
 type ReduceFunc[T any, R any] func(R, T) R
 
 func Reduce[T any, R any](iter Iterable[T], init R, reducer ReduceFunc[T, R]) (R, error) {
-	for iter.Next() {
-		init = reducer(init, iter.Get())
+	for v, b := iter.Next(); b; v, b = iter.Next() {
+		init = reducer(init, v)
 	}
 	return init, iter.Error()
 }
@@ -144,9 +134,11 @@ func Reduce[T any, R any](iter Iterable[T], init R, reducer ReduceFunc[T, R]) (R
 
 func ToSlice[T any](iter Iterable[T]) ([]T, error) {
 	var result []T
-	for iter.Next() {
-		result = append(result, iter.Get())
+
+	for v, b := iter.Next(); b; v, b = iter.Next() {
+		result = append(result, v)
 	}
+
 	return result, iter.Error()
 }
 

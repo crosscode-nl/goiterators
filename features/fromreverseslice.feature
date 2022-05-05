@@ -29,7 +29,7 @@ Feature: FromReverseSlice returns an reverse iterator
       | 2 |
       | 3 |
     When FromReverseSlice is called
-    Then Get() after Next() should return:
+    Then calling Next() until false is returned should return the following integers:
       | 3 |
       | 2 |
       | 1 |

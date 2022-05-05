@@ -29,7 +29,7 @@ Feature: FromSlice returns an iterator
       | 2 |
       | 3 |
     When FromSlice is called
-    Then Get() after Next() should return:
+    Then calling Next() until false is returned should return the following integers:
       | 1 |
       | 2 |
       | 3 |
