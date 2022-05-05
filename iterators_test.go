@@ -117,7 +117,6 @@ func fromReverseSliceIsCalled() {
 func aPredicateThatOnlySelectsOddNumbers() {
 	t.predicate = func(a int) bool {
 		result := (a % 2) != 0
-		fmt.Printf("%v %v", a, result)
 		return result
 	}
 }
@@ -641,4 +640,230 @@ func BenchmarkFilterMapDIY2(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		benchFunc()
 	}
+}
+
+// Examples
+
+func ExampleFromSlice() {
+	s := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+	// FromSlice turns the slice into an iterator.
+	si := FromSlice(s)
+
+	// Print each value from the slice iterator. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	_ = ForEach[int](si, func(v int) {
+		fmt.Println(v)
+	})
+
+	// Output:
+	// 1
+	// 2
+	// 3
+	// 4
+	// 5
+	// 6
+	// 7
+	// 8
+	// 9
+	// 10
+}
+
+func ExampleSequence() {
+	// Instead of doing the following we can also use generators.
+	// Generators are Iterators that make up data while iterating.
+	// This example uses the Sequence generator.
+
+	// s := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+	// si := FromSlice(s)
+
+	// Get a sequence iterator that generates values from 1 to 10.
+	si := Sequence(1, 10)
+
+	// Print each value from the sequence iterator. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	_ = ForEach[int](si, func(v int) {
+		fmt.Println(v)
+	})
+
+	// Output:
+	// 1
+	// 2
+	// 3
+	// 4
+	// 5
+	// 6
+	// 7
+	// 8
+	// 9
+	// 10
+}
+
+func ExampleFilter() {
+	// odd is a predicate that evaluates to true when an odd number is encountered.
+	odd := func(v int) bool {
+		return (v % 2) != 0
+	}
+
+	// Get a sequence iterator that generates values from 1 to 10.
+	si := Sequence(1, 10)
+	// Get a filter iterator that takes the sequence iterator as an input and uses the odd predicate to filter.
+	// the values from the sequence iterator.
+	fi := Filter[int](si, odd)
+
+	// Print each value from the filter iterator. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	_ = ForEach[int](fi, func(v int) {
+		fmt.Println(v)
+	})
+
+	// Output:
+	// 1
+	// 3
+	// 5
+	// 7
+	// 9
+}
+
+func ExampleMap() {
+	// double is a map closure that doubles each value.
+	double := func(v int) int {
+		return v * 2
+	}
+
+	// Get a sequence iterator that generates values from 1 to 10.
+	si := Sequence(1, 10)
+	// Get a map iterator that takes the sequence iterator as an input and uses the map closure.
+	// to double the values from the sequence iterator.
+	mi := Map[int](si, double)
+
+	// Print each value from the filter iterator. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the  iteration was not completed.
+	_ = ForEach[int](mi, func(v int) {
+		fmt.Println(v)
+	})
+
+	// Output:
+	// 2
+	// 4
+	// 6
+	// 8
+	// 10
+	// 12
+	// 14
+	// 16
+	// 18
+	// 20
+}
+
+func ExampleReduce() {
+	// Average struct used by the average closure.
+	type Average struct {
+		count   float64
+		average float64
+	}
+
+	// average reducer closure that is used by Reduce.
+	average := func(a Average, v float64) Average {
+		a.average = ((a.average * a.count) + v) / (a.count + 1)
+		a.count++
+		return a
+	}
+
+	toFloat := func(i int) float64 {
+		return float64(i)
+	}
+
+	// Get a sequence iterator that generates values from 1 to 11.
+	si := Sequence(1, 11)
+	// Map the sequence of ints to float64.
+	mi := Map[int, float64](si, toFloat)
+	// Reduce all values with reduce closure average to calculate the average. Error is ignored.
+	// Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	avg, _ := Reduce[float64](mi, Average{}, average)
+
+	fmt.Println(avg.average)
+
+	// Output:
+	// 6
+}
+
+func ExampleFromReverseSlice() {
+	s := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+	// FromReverseSlice turns the slice into a reverse iterator.
+	si := FromReverseSlice(s)
+
+	// Print each value from the slice iterator. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	_ = ForEach[int](si, func(v int) {
+		fmt.Println(v)
+	})
+
+	// Output:
+	// 10
+	// 9
+	// 8
+	// 7
+	// 6
+	// 5
+	// 4
+	// 3
+	// 2
+	// 1
+}
+
+func ExampleStepSequence() {
+	// Instead of doing the following we can also use generators.
+	// Generators are Iterators that make up data while iterating.
+	// This example uses the StepSequence generator.
+
+	// s := []int{1, 3, 5, 7, 9}
+	// si := FromSlice(s)
+
+	// Get a sequence iterator that generates values from 1 to 10, but increments with steps of 2.
+	si := StepSequence(1, 10, 2)
+
+	// Print each value from the sequence iterator. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	_ = ForEach[int](si, func(v int) {
+		fmt.Println(v)
+	})
+
+	// Output:
+	// 1
+	// 3
+	// 5
+	// 7
+	// 9
+}
+
+func ExampleToSlice() {
+	// Iterators can be turned into slices with ToSlice
+
+	// Get a sequence iterator that generates values from 1 to 10, but increments with steps of 2.
+	si := StepSequence(1, 10, 2)
+	// Convert the iterator into a slice. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	s, _ := ToSlice[int](si)
+	// Iterate the slice and print each value.
+	for _, v := range s {
+		fmt.Println(v)
+	}
+
+	// Output:
+	// 1
+	// 3
+	// 5
+	// 7
+	// 9
 }
