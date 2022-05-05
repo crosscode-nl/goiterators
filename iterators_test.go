@@ -22,6 +22,8 @@ type testFixture struct {
 	counter                 ForEachFunc[int]
 	count                   int
 	sum                     int
+	generator               GeneratorFunc[string]
+	repeat                  uint64
 }
 
 var t testFixture
@@ -64,14 +66,6 @@ func aSliceIteratorIsReturnedWithIdxContaining(arg1 int) error {
 	si := t.resultingIntIterator.(*SliceIterator[int])
 	if arg1 != si.idx {
 		return fmt.Errorf("expected: %v got: %v", arg1, si.idx)
-	}
-	return nil
-}
-
-func aSliceIteratorIsReturnedWithErrorContainingNil() error {
-	si := t.resultingIntIterator.(*SliceIterator[int])
-	if nil != si.error {
-		return fmt.Errorf("expected: %v got: %v", nil, si.error)
 	}
 	return nil
 }
@@ -240,6 +234,20 @@ func callingNextUntilFalseIsReturnedShouldReturnTheFollowingIntegers(listofints 
 	return nil
 }
 
+func aGeneratorFuncThatReturnsTheCountAndRepeatConcatenatedWithAComma() {
+	t.generator = func(c, r uint64) string {
+		return fmt.Sprintf("%d,%d", c, r)
+	}
+}
+
+func aRepeatValueOf(r int) {
+	t.repeat = uint64(r)
+}
+
+func generateIsCalled() {
+	t.resultingStringIterator = Generate(t.repeat, t.generator)
+}
+
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	t = testFixture{}
 
@@ -247,8 +255,6 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^FromSlice is called$`, fromSliceIsCalled)
 	ctx.Step(`^FromReverseSlice is called$`, fromReverseSliceIsCalled)
 	ctx.Step(`^Next\(\) returns true (\d+) times and then returns false$`, nextReturnsTrueTimesAndThenReturnsFalse)
-	//	ctx.Step(`^Get\(\) after Next\(\) should return:$`, getAfterNextShouldReturn)
-	ctx.Step(`^a SliceIterator is returned with \.error containing nil$`, aSliceIteratorIsReturnedWithErrorContainingNil)
 	ctx.Step(`^a SliceIterator is returned with \.idx containing (-\d+)$`, aSliceIteratorIsReturnedWithIdxContaining)
 	ctx.Step(`^a SliceIterator is returned with \.reverse containing false$`, aSliceIteratorIsReturnedWithReverseContainingFalse)
 	ctx.Step(`^a SliceIterator is returned with \.values containing:$`, aSliceIteratorIsReturnedWithValuesContaining)
@@ -257,7 +263,6 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^an Iterable with the following values:$`, anIterableWithTheFollowingValues)
 	ctx.Step(`^Filter is called$`, filterIsCalled)
 	ctx.Step(`^a map function that multiples the values and converts the int to a string, prefixed with test$`, aMapFunctionThatMultiplesTheValuesAndConvertsTheIntToAStringPrefixedWithTest)
-	//	ctx.Step(`^Get\(\) after Next\(\) should return the following values as strings:$`, getAfterNextShouldReturnTheFollowingValuesAsStrings)
 	ctx.Step(`^Map is called$`, mapIsCalled)
 	ctx.Step(`^a slice is returned with the following values:$`, aSliceIsReturnedWithTheFollowingValues)
 	ctx.Step(`^ToSlice is called$`, toSliceIsCalled)
@@ -270,6 +275,9 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^The returned sum is (\d+)$`, theReturnedSumIs)
 	ctx.Step(`^calling Next\(\) until false is returned should return the following integers:$`, callingNextUntilFalseIsReturnedShouldReturnTheFollowingIntegers)
 	ctx.Step(`^calling Next\(\) until false is returned should return the following strings:$`, callingNextUntilFalseIsReturnedShouldReturnTheFollowingStrings)
+	ctx.Step(`^a GeneratorFunc that returns the count and repeat concatenated with a comma\.$`, aGeneratorFuncThatReturnsTheCountAndRepeatConcatenatedWithAComma)
+	ctx.Step(`^a repeat value of (\d+)$`, aRepeatValueOf)
+	ctx.Step(`^Generate\(\) is called$`, generateIsCalled)
 
 }
 

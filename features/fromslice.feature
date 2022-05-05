@@ -12,7 +12,6 @@ Feature: FromSlice returns an iterator
       | 2 |
       | 3 |
     Then a SliceIterator is returned with .idx containing -1
-    Then a SliceIterator is returned with .error containing nil
     Then a SliceIterator is returned with .reverse containing false
 
   Scenario: A slice with 3 items returns an Iterable that returns exactly 3 items when FromSlice is called

@@ -222,9 +222,9 @@ func (g *GeneratingIterator[T]) Error() error {
 	return nil
 }
 
-// Generator accepts a repeat count and a GeneratorFunc closure and returns a GeneratingIterator that repeats
+// Generate accepts a repeat count and a GeneratorFunc closure and returns a GeneratingIterator that repeats
 // the given repeat times and returns values returned by the GeneratorFunc closure.
-func Generator[T any](r uint64, gf GeneratorFunc[T]) *GeneratingIterator[T] {
+func Generate[T any](r uint64, gf GeneratorFunc[T]) *GeneratingIterator[T] {
 	return &GeneratingIterator[T]{
 		count:     0,
 		repeat:    r,
@@ -240,9 +240,12 @@ type SignedIntegers interface {
 // RepeatingIntegerGenerator accepts en initial value, a repeat value and a step value.
 // The initial value is increased after each iteration step with the step value.
 func RepeatingIntegerGenerator[T SignedIntegers](i T, r uint64, s T) *GeneratingIterator[T] {
-	return Generator(r, func(c uint64, r uint64) T {
+
+	next := func(c uint64, r uint64) T {
 		return i + (s * T(c))
-	})
+	}
+
+	return Generate(r, next)
 }
 
 // StepSequence accepts signed integer for start and end values. It will return GeneratingIterator
@@ -254,12 +257,12 @@ func StepSequence[T SignedIntegers](start T, end T, step T) *GeneratingIterator[
 		if step > 0 {
 			step *= -1
 		}
-		return RepeatingIntegerGenerator(start, (start - end).(uint64), step)
+		return RepeatingIntegerGenerator(start, uint64(start-end), step)
 	}
 	if step < 0 {
 		step *= -1
 	}
-	return RepeatingIntegerGenerator(start, (end - start).(uint64), step)
+	return RepeatingIntegerGenerator(start, uint64(end-start), step)
 }
 
 // Sequence accepts signed integer for start and end values. It will return GeneratingIterator
