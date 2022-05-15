@@ -1,8 +1,8 @@
-# Iterators
+# Iterator
 
 ## Introduction
 
-This project is en implementation of iterators for go using generics. I started this project because I like the 
+This project is an implementation of iterators for go using generics. I started this project because I like the 
 functional map/filter/reduce pattern that is offered by many languages. 
 
 Go is a simple language - meaning that it is lean in features - but it offers functional principles in the form of 
@@ -12,13 +12,17 @@ Go did not support generics until version 1.18. Go 1.18.x is at the time of writ
 
 I was wondering if Go would now allow us to write a good type safe iterator framework. 
 
-Next thing I wanted to test is the Gherkin/Cucumber BDD test framework [Godog](https://github.com/cucumber/godog).  
+I also wanted to evaluate the Gherkin/Cucumber BDD test framework [Godog](https://github.com/cucumber/godog).
 
-## Conclusion
+## Usage
+
+Please take a look at the examples in [iterators_test.go](iterators_test.go).
+
+## Conclusions
 
 ### Generics
 
-Go does not support Generics well enough to allow for an intuitive framework.
+Go does not support Generics well enough to allow me to design an intuitive framework.
 
    * Go does not allow for Generic methods. These are required for chaining the operations like: 
      ```go 
@@ -35,8 +39,34 @@ Go does not support Generics well enough to allow for an intuitive framework.
      Map[int](iter, toString)
      ```
      
-There are workarounds possible, such as retuning the generic interface from all functions. However, no support 
-for generic methods means no generic fluent API like constructs are possible. 
+There are workarounds possible for the second issue, such as:
+   * Returning the generic interface from all functions and methods.
+   * Create a method in each type that returns a generic interface from the struct. 
+
+Returning a generic interface means a struct can only implement that interface closes a lot of doors for future 
+expansion. 
+
+Creating a method in each type that returns a generic interface can make the library harder to use, and is not a lot 
+better than just specifying the generic type of the receiving function.
+
+Such a workaround could look like this: 
+
+```go
+     iter := FromSlice([]int{1,2,3,4})
+     Map(iter.I(), toString)
+``` 
+
+Instead of: 
+
+```go
+    iter := FromSlice([]int{1,2,3,4})
+    Map[int](iter, toString)
+```
+
+Also, because there is no support for generic methods means no generic fluent API like constructs are possible.
+
+So, I think the current design is the best design for this library yet and future versions of the Go compiler could 
+have improvements on generics which makes this library automatically friendlier to use. 
 
 ### Godog
 
