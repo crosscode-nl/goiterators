@@ -61,6 +61,31 @@ func FromReverseSlice[T any](values []T) *SliceIterator[T] {
 	}
 }
 
+// ChannelIterator is a generic struct implementing an iterator that iterates over channels.
+type ChannelIterator[T any] struct {
+	c <-chan T
+}
+
+// Next returns the first or next value of T and true if a value is available.
+// If no more values are available or an error has occurred then a zero value of T and false is returned.
+func (iter *ChannelIterator[T]) Next() (v T, r bool) {
+	v, r = <-iter.c
+	return
+}
+
+// Error returns nil after Next returned false when the iteration has completed successfully, otherwise
+// an error is returned. The ChannelIterator never returns an error.
+func (iter *ChannelIterator[T]) Error() error {
+	return nil
+}
+
+// FromChannel creates a ChannelIterator that iterates the provided channel.
+func FromChannel[T any](c <-chan T) *ChannelIterator[T] {
+	return &ChannelIterator[T]{
+		c: c,
+	}
+}
+
 // Algorithms
 // Foreach
 
@@ -185,6 +210,18 @@ func ToSlice[T any](iter Iterable[T]) ([]T, error) {
 	}
 
 	return result, iter.Error()
+}
+
+// ToChannel
+
+// ToChannel renders the Iterable to a channel.
+func ToChannel[T any](iter Iterable[T], c chan<- T) error {
+
+	for v, b := iter.Next(); b; v, b = iter.Next() {
+		c <- v
+	}
+
+	return iter.Error()
 }
 
 // Generators

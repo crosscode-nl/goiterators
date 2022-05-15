@@ -38,6 +38,39 @@ func ExampleFromSlice() {
 	// 10
 }
 
+func ExampleFromChannel() {
+	c := make(chan int)
+
+	go func() {
+		defer close(c)
+		for i := 1; i <= 10; i++ {
+			c <- i
+		}
+	}()
+
+	// FromChannel turns the channel into an iterator.
+	si := FromChannel(c)
+
+	// Print each value from the slice iterator. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	_ = ForEach[int](si, func(v int) {
+		fmt.Println(v)
+	})
+
+	// Output:
+	// 1
+	// 2
+	// 3
+	// 4
+	// 5
+	// 6
+	// 7
+	// 8
+	// 9
+	// 10
+}
+
 func ExampleSequence() {
 	// Instead of doing the following we can also use generators.
 	// Generators are Iterators that make up data while iterating.
@@ -236,6 +269,32 @@ func ExampleToSlice() {
 	// 9
 }
 
+func ExampleToChannel() {
+	// Iterators can send results to a channel with ToChannel.
+	c := make(chan int)
+
+	// Get a sequence iterator that generates values from 1 to 10, but increments with steps of 2.
+	si := StepSequence(1, 10, 2)
+	// Sends the items to a channel. Error is ignored. Errors can only occur in Iterators which can have
+	// an error state. For example a custom iterator that reads data from the database, but the connection is
+	// terminated while the iteration was not completed.
+	go func() {
+		defer close(c)
+		_ = ToChannel[int](si, c)
+	}()
+	// Iterate the slice and print each value.
+	for v := range c {
+		fmt.Println(v)
+	}
+
+	// Output:
+	// 1
+	// 3
+	// 5
+	// 7
+	// 9
+}
+
 func ExampleGenerate() {
 	// A generator/iterator can be created easily from a closure using Generate.
 	// The closure receives two parameters: c is the current count, and r is the amount of items to generate.
@@ -277,6 +336,7 @@ type testFixture struct {
 	start                   int
 	end                     int
 	step                    int
+	channel                 chan int
 }
 
 var t testFixture
@@ -590,6 +650,57 @@ func errorOfIntIteratorReturnsNil() error {
 	return nil
 }
 
+func aClosedChannelWithTheFollowingValues(listofints *godog.Table) {
+	t.channel = make(chan int)
+	go func() {
+		values, err := toSliceOfInts(listofints)
+		if err != nil {
+			panic(err)
+		}
+		for _, v := range values {
+			t.channel <- v
+		}
+		close(t.channel)
+	}()
+}
+
+func fromChannelIsCalled() {
+	t.resultingIntIterator = FromChannel(t.channel)
+}
+
+func theChannelIsClosed() {
+	close(t.channel)
+}
+
+func theFollowingValuesAreReceivedOnTheChannel(listofints *godog.Table) error {
+	var results []int
+	expected, err := toSliceOfInts(listofints)
+	if err != nil {
+		return err
+	}
+	for v := range t.channel {
+		results = append(results, v)
+	}
+	if !reflect.DeepEqual(expected, results) {
+		return fmt.Errorf("expected: %v got: %v", expected, results)
+	}
+	return nil
+}
+
+func toChannelIsCalled() {
+	go func() {
+		defer close(t.channel)
+		err := ToChannel(t.resultingIntIterator, t.channel)
+		if err != nil {
+			panic(err)
+		}
+	}()
+}
+
+func aChannel() {
+	t.channel = make(chan int)
+}
+
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	t = testFixture{}
 
@@ -631,6 +742,12 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^Error\(\) of int iterator returns nil$`, errorOfIntIteratorReturnsNil)
 	ctx.Step(`^Error\(\) of string iterator returns an error$`, errorOfStringIteratorReturnsAnError)
 	ctx.Step(`^Error\(\) of string iterator returns nil$`, errorOfStringIteratorReturnsNil)
+	ctx.Step(`^a closed channel with the following values:$`, aClosedChannelWithTheFollowingValues)
+	ctx.Step(`^FromChannel is called$`, fromChannelIsCalled)
+	ctx.Step(`^the channel is closed$`, theChannelIsClosed)
+	ctx.Step(`^the following values are received on the channel$`, theFollowingValuesAreReceivedOnTheChannel)
+	ctx.Step(`^ToChannel is called$`, toChannelIsCalled)
+	ctx.Step(`^a channel$`, aChannel)
 
 }
 
