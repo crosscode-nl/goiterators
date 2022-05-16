@@ -1,4 +1,4 @@
-# Iterator [![Total alerts](https://img.shields.io/lgtm/alerts/g/crosscode-nl/iterator.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/crosscode-nl/iterator/alerts/)
+# Iterator [![Total alerts](https://img.shields.io/lgtm/alerts/g/crosscode-nl/iterator.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/crosscode-nl/iterator/alerts/) [![Go Report Card](https://goreportcard.com/badge/github.com/crosscode-nl/iterator)](https://goreportcard.com/report/github.com/crosscode-nl/iterator)
 
 ## Introduction
 
@@ -16,7 +16,7 @@ I also wanted to evaluate the Gherkin/Cucumber BDD test framework [Godog](https:
 
 ## Usage
 
-Please take a look at the examples in [iterators_test.go](iterators_test.go).
+Please take a look at the examples in [iterators_test.go](iterators_test.go), and read the [API documentation](https://pkg.go.dev/github.com/crosscode-nl/iterator).
 
 ## Conclusions
 
