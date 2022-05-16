@@ -1,4 +1,4 @@
-# Iterator
+# Iterator [![Total alerts](https://img.shields.io/lgtm/alerts/g/crosscode-nl/iterator.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/crosscode-nl/iterator/alerts/)
 
 ## Introduction
 

@@ -1,4 +1,4 @@
-module iterator
+module github.com/crosscode-nl/iterator
 
 go 1.18
 
